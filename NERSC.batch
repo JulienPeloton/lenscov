@@ -1,0 +1,25 @@
+#!/bin/bash -l
+#SBATCH -p debug
+#SBATCH -N 6
+#SBATCH -t 00:30:00
+#SBATCH -J CMBlensingcori
+
+source $HOME/.bashrc.ext
+
+cd $SLURM_SUBMIT_DIR
+
+main_script=covariances.py
+
+## Input CAMB files
+unlensed_file=additional_files/planck_lensing_wp_highL_bestFit_20130627_scalCls.dat
+lensed_file=additional_files/planck_lensing_wp_highL_bestFit_20130627_lensedCls.dat
+
+## Runmode: What do you want to compute?
+runmode=covariances_phixCMB
+
+## Choice between Planck, Core++, CMB-S4, and Ideal
+exp=CMB-S4
+
+## Make sure you have python-mpi, optimized for parallel computing at NERSC
+## Launch script with sbatch launch_cori.sh
+time srun -n 192 python-mpi ${main_script} -input_unlensed_spectra ${unlensed_file} -input_lensed_spectra ${lensed_file} -exp $exp -runmode $runmode --mpi

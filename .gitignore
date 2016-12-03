@@ -1,0 +1,9 @@
+plots/*.pdf
+*.pyc
+*.so
+*.o
+cache/
+src/*.mod
+src/*.so
+src/*.o
+build/

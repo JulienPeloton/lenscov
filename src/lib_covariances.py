@@ -1017,15 +1017,15 @@ def analytic_covariances_phixCMB(cls_unlensed,cls_lensed,lmin=2,noise_uK_arcmin=
 			index_CMB_derivative = blocks_for_CMB_derivatives.index(name_signal)
 
 			## Load corresponding dN1_over_dCpp matrix
-			tag = '_%s'%'CMB-S4'
+			tag = '_analytical'
 
 			# N1 matrix from code and samplings
 			try:
 				Lout, Ls, dLs, dN1_over_dCpp_binned = readN1_matrix(ntag='All',atag=tag,
-														matrixtag = block[:4], path_to_N1matrix='N1/CMB-S4')
+														matrixtag = block[:4], path_to_N1matrix='N1/%s'%exp)
 			except:
 				Lout, Ls, dLs, dN1_over_dCpp_binned = readN1_matrix(ntag='All',atag=tag,
-														matrixtag = block[2:4]+block[:2], path_to_N1matrix='N1/CMB-S4')
+														matrixtag = block[2:4]+block[:2], path_to_N1matrix='N1/%s'%exp)
 
 			## N1 matrix operate on and return (L(L+1)]^2C^pp /2pi normalized quantities, so we need to undo this.
 			dN1_over_dCpp_binned = np.array([[

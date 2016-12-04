@@ -1,6 +1,6 @@
 # Copyright (C) 2016 Peloton
 #########################
-# Main script to compute covariances
+# Main script to compute CMB and lensing covariances
 # author: julien@sussex
 # See 1611.01446
 #########################
@@ -15,6 +15,13 @@ import argparse
 
 import lib_covariances, lib_spectra
 import misc, util
+
+try:
+	import LensingBiases as LB
+except:
+	print 'You need to install the lensingbiases package'
+	print 'to compute N1. See '
+	print 'https://github.com/JulienPeloton/lensingbiases'
 
 font = {'family' : 'monospace',
 			  'weight' : 'bold',
@@ -103,6 +110,31 @@ def covariances_main(args):
 				noise_uK_arcmin=noise_uK_arcmin, fwhm_arcmin=fwhm_arcmin, MPI=MPI)
 			array_to_save = [N0, blocks]
 
+	if MODE == 'N1':
+		'''
+		Compute N1 bias.
+		It uses the lensingbiases package (see https://github.com/JulienPeloton/lensingbiases)
+		The output is saved on the disk, and used later on.
+		'''
+
+		## Initialization of file manager
+		file_manager = util.file_manager(MODE, exp, 'v1', lmax, force_recomputation=False, folder=folder_cache,rank=rank)
+
+		## We need to compute N0 for internal purposes (flat-sky, so not used afterwards)
+		bins, phiphi, n0_mat, indices = LB.compute_n0_py(from_args=None,phifile=args.input_unlensed_spectra,
+							lensedcmbfile=args.input_lensed_spectra,
+							FWHM=fwhm_arcmin,noise_level=noise_uK_arcmin,
+							lmin=lmin,lmaxout=lmax,lmax=lmax,lmax_TT=lmax,
+							tmp_output='N1/%s'%exp)
+
+		## Compute N1, and derivatives of N1 wrt lensing potential power-spectrum
+		LB.compute_n1_derivatives_py(from_args=None,phifile=args.input_unlensed_spectra,
+							lensedcmbfile=args.input_lensed_spectra,
+							FWHM=fwhm_arcmin,noise_level=noise_uK_arcmin,
+							lmin=lmin,lmaxout=lmax,lmax=lmax,lmax_TT=lmax,
+							tmp_output='N1/%s'%exp)
+		sys.exit()
+
 	elif MODE == 'covariances_CMBxCMB':
 		'''
 		Compute different parts of the CMB auto-covariance.
@@ -146,7 +178,7 @@ def covariances_main(args):
 		for the reconstructed lensing potential power spectrum.
 		'''
 		## Initialization of file manager
-		fn_n1 = 'N1/%s/N1_All_%s.dat'%(exp,exp)
+		fn_n1 = 'N1/%s/N1_All_analytical.dat'%(exp)
 
 		file_manager = util.file_manager(MODE, exp, spec='v1', lmax=lmax,
 								force_recomputation=False, folder=folder_cache,rank=rank)

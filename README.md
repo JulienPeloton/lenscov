@@ -22,8 +22,9 @@ It has routines for:
     * computing derivatives of spectra using correlation functions
     * computing wigner (small) d-matrix efficiently
 
-The code performs computation in full-sky formalism, and
+The code performs computation in the full-sky formalism, and
 the code is fully-parallelized using mpi4py (but some parts work also in serial).
+In addition, some Fortran parts make use of openmp (computation of N1).
 
 ### Before starting
 This code has the following dependencies:
@@ -35,8 +36,8 @@ This code has the following dependencies:
 Make sure you update your PYTHONPATH to use the code.
 Just add in your bashrc:
 ```bash
-BIASPATH=/path/to/the/package
-export PYTHONPATH=$PYTHONPATH:$BIASPATH
+COVPATH=/path/to/the/package
+export PYTHONPATH=$PYTHONPATH:$COVPATH:$COVPATH/src
 ```
 
 ### Compilation of C and Fortran

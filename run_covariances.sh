@@ -29,6 +29,8 @@ elif [ "$1" == "help" ]
 	exit
 elif [ "$1" == "mpi" ]
 	then
+	time mpirun -np $2 python ${main_script} -input_unlensed_spectra ${unlensed_file} -input_lensed_spectra ${lensed_file} -exp $exp -runmode N1 --mpi
+	wait
 	time mpirun -np $2 python ${main_script} -input_unlensed_spectra ${unlensed_file} -input_lensed_spectra ${lensed_file} -exp $exp -runmode N0 --mpi
 	wait
 	time mpirun -np $2 python ${main_script} -input_unlensed_spectra ${unlensed_file} -input_lensed_spectra ${lensed_file} -exp $exp -runmode covariances_CMBxCMB --mpi

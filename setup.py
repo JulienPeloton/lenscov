@@ -52,14 +52,7 @@ def configuration(parent_package='',top_path=None):
 if __name__ == "__main__":
     from numpy.distutils.core import setup
 
-    ## Compilation of N1, and derivatives
-    if os.getenv('NERSC_HOST')=='cori':
-        os.system("cd src/; ftn -openmp Biases_n1mat.f90 -o getn1_mat; cd ../")
-    elif os.getenv('NERSC_HOST')=='edison':
-        os.system("cd src/; ifort -openmp Biases_n1mat.f90 -o getn1_mat -lgfortran -lifcore; cd ../")
-    else:
-        os.system("cd src/; gfortran -openmp Biases_n1mat.f90 -o getn1_mat -lgfortran -lifcore; cd ../")
-
+    ## Wigner 3-j symbols
     os.system("cd src/; gfortran -fPIC -c *.f -lgfortran -lifcore; cd ..")
 
     setup(name='lenscov',

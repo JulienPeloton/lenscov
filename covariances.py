@@ -120,6 +120,8 @@ def covariances_main(args):
 		## Initialization of file manager
 		file_manager = util.file_manager(MODE, exp, 'v1', lmax, force_recomputation=False, folder=folder_cache,rank=rank)
 
+		LB.checkproc_py()
+
 		## We need to compute N0 for internal purposes (flat-sky, so not used afterwards)
 		bins, phiphi, n0_mat, indices = LB.compute_n0_py(from_args=None,phifile=args.input_unlensed_spectra,
 							lensedcmbfile=args.input_lensed_spectra,

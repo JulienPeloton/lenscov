@@ -485,7 +485,7 @@ class camb_clfile(object):
 		"""
 
 		tarray = np.loadtxt(tfname)
-		lmin   = tarray[0, 0]
+		lmin   = int(tarray[0, 0])
 		assert(lmin in [1,2])
 
 		if lmax == None:

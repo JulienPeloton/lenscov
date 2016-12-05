@@ -1,5 +1,6 @@
 lenscov
 ==
+<img src = "https://inspirehep.net/record/1495824/files/covariances_phixCMB_triangle_MV_binned_CMB-S4_difference.png" title = "Covariances" alt = "covariances">
 
 #### The package
 This package contains scripts for computing CMB and lensing covariances

@@ -3,7 +3,7 @@ lenscov
 
 #### The package
 This package contains scripts for computing CMB and lensing covariances
-as described in Peloton et al. 2016 (Arxiv:1611.01446)
+as described in Peloton et al. 2016 (<a href="https://arxiv.org/abs/1611.01446" title=1611.01446">1611.01446</a>)
 It has routines for:
 * Spectra
     * computing CMB lensed power spectra using series-expansion

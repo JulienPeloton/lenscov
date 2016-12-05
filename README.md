@@ -1,7 +1,7 @@
 lenscov
 ==
 
-![ScreenShot](https://github.com/JulienPeloton/lenscov/blob/master/additional_files/covariances_phixCMB_triangle_MV_CMB-S4.pdf)
+![ScreenShot](https://github.com/JulienPeloton/lenscov/blob/master/additional_files/covariances_phixCMB_triangle_MV_CMB-S4.png)
 
 #### The package
 This package contains scripts for computing CMB and lensing covariances

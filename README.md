@@ -1,6 +1,6 @@
 lenscov
 ==
-<img src = "covariances_phixCMB_triangle_MV_CMB-S4.pdf" title = "Covariances" alt = "covariances">
+<img src = "additional_files/covariances_phixCMB_triangle_MV_CMB-S4.pdf" title = "Covariances" alt = "covariances">
 
 #### The package
 This package contains scripts for computing CMB and lensing covariances

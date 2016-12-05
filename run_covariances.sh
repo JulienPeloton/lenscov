@@ -11,9 +11,6 @@ main_script=covariances.py
 unlensed_file=additional_files/planck_lensing_wp_highL_bestFit_20130627_scalCls.dat
 lensed_file=additional_files/planck_lensing_wp_highL_bestFit_20130627_lensedCls.dat
 
-## Runmode: What do you want to compute?
-runmode=covariances_phixCMB
-
 ## Choice between Planck, Core++, CMB-S4, and Ideal
 exp=_test_
 

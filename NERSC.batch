@@ -21,5 +21,5 @@ runmode=covariances_phixCMB
 exp=CMB-S4
 
 ## Make sure you have python-mpi, optimized for parallel computing at NERSC
-## Launch script with sbatch launch_cori.sh
+## Launch script with sbatch
 time srun -n 192 python-mpi ${main_script} -input_unlensed_spectra ${unlensed_file} -input_lensed_spectra ${lensed_file} -exp $exp -runmode $runmode --mpi

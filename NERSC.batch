@@ -15,10 +15,18 @@ unlensed_file=additional_files/planck_lensing_wp_highL_bestFit_20130627_scalCls.
 lensed_file=additional_files/planck_lensing_wp_highL_bestFit_20130627_lensedCls.dat
 
 ## Runmode: What do you want to compute?
-runmode=covariances_phixCMB
+runmode=covariances_CMBxCMB
 
 ## Choice between Planck, Core++, CMB-S4, and Ideal
 exp=CMB-S4
+
+if [ "${runmode}" == "N1" ];
+	then
+	## Just need one node (i.e. -N 1 above)
+	export OMP_NUM_THREADS=48
+	time python ${main_script} -input_unlensed_spectra ${unlensed_file} -input_lensed_spectra ${lensed_file} -exp $exp -runmode $runmode --mpi
+	exit
+fi
 
 ## Make sure you have python-mpi, optimized for parallel computing at NERSC
 ## Launch script with sbatch

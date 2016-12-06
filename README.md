@@ -34,7 +34,7 @@ This code has the following dependencies:
 * scipy (required, for C interfacing)
 * f2py (required, for Fortran interfacing)
 * mpi4py (optional, to use parallel computing)
-* LensingBiases (required, to compute lensing biases)
+* LensingBiases (optional, to compute lensing biases)
 
 Make sure you update your PYTHONPATH to use the code.
 Just add in your bashrc:

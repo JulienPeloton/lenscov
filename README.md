@@ -8,10 +8,10 @@ This package contains scripts for computing CMB and lensing covariances
 as described in Peloton et al. 2016 (<a href="https://arxiv.org/abs/1611.01446" title=1611.01446">1611.01446</a>)
 It has routines for:
 * Spectra
+    * computing (analytically) the N0 bias (curve- and flat-sky available)
+    * computing (analytically) the N1 bias (only flat-sky available)
     * computing CMB lensed power spectra using series-expansion
     * computing CMB lensed power spectra using correlation functions
-    * computing (analytically) the N0 bias
-    * computing (analytically) the N1 bias
 * Covariances
     * computing (analytically) the covariance matrix of
       CMB lensed spectra up to second order in lensing potential power-spectrum

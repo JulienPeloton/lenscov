@@ -25,7 +25,7 @@ It has routines for:
     * computing wigner (small) d-matrix efficiently
 
 The code performs computation in the full-sky formalism, and
-the code is fully-parallelized using mpi4py (but some parts work also in serial).
+the code is fully-parallelized using mpi4py.
 In addition, some Fortran parts make use of openmp (computation of N1).
 
 ### Before starting

@@ -18,20 +18,18 @@ def get_exp_configuration(exp='_test_'):
 	do_edison = False
 	if os.getenv('NERSC_HOST')=='cori':
 		do_cori = True
+		folder_cache = os.path.join(os.getenv('SCRATCH'),'cache')
 	elif os.getenv('NERSC_HOST')=='edison':
 		do_edison = True
+		folder_cache = os.path.join(os.getenv('SCRATCH'),'cache')
+	else:
+		folder_cache = 'cache'
 
 	if exp == '_test_':
 		lmin = 2
 		lmax = 250
 		noise_uK_arcmin = 0.0
 		fwhm_arcmin = 0.0
-		if do_cori:
-			folder_cache = '/global/cscratch1/sd/peloton/lensing/cache'
-		elif do_edison:
-			folder_cache = '/scratch1/scratchdirs/peloton/lensing/cache'
-		else:
-			folder_cache = 'cache'
 	elif exp == 'Planck':
 		'''
 		From Schmittfull et al 13
@@ -40,12 +38,6 @@ def get_exp_configuration(exp='_test_'):
 		lmax = 2500
 		noise_uK_arcmin = 27.0
 		fwhm_arcmin = 7.0
-		if do_cori:
-			folder_cache = '/global/cscratch1/sd/peloton/lensing/cache'
-		elif do_edison:
-			folder_cache = '/scratch1/scratchdirs/peloton/lensing/cache'
-		else:
-			folder_cache = 'cache'
 	elif exp == 'Core++':
 		'''
 		From Jojo article (1509.06770) @ 150 GHz
@@ -54,12 +46,6 @@ def get_exp_configuration(exp='_test_'):
 		lmax = 4000
 		noise_uK_arcmin = 5.0
 		fwhm_arcmin = 6.0
-		if do_cori:
-			folder_cache = '/global/cscratch1/sd/peloton/lensing/cache'
-		elif do_edison:
-			folder_cache = '/scratch1/scratchdirs/peloton/lensing/cache'
-		else:
-			folder_cache = 'cache'
 	elif exp == 'CMB-S4':
 		'''
 		From Jojo article (1509.06770) @ 150 GHz
@@ -71,12 +57,6 @@ def get_exp_configuration(exp='_test_'):
 		lmax = 3000
 		noise_uK_arcmin = 1.5
 		fwhm_arcmin = 3.0
-		if do_cori:
-			folder_cache = '/global/cscratch1/sd/peloton/lensing/cache'
-		elif do_edison:
-			folder_cache = '/scratch1/scratchdirs/peloton/lensing/cache'
-		else:
-			folder_cache = 'cache'
 
 	return noise_uK_arcmin, fwhm_arcmin, lmin, lmax, folder_cache
 

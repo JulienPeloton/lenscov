@@ -24,9 +24,10 @@ It has routines for:
     * computing derivatives of spectra using correlation functions
     * computing wigner (small) d-matrix efficiently
 
-The code performs computation in the full-sky formalism, and
-the code is fully-parallelized using mpi4py.
-In addition, some Fortran parts make use of openmp (computation of N1).
+The code performs computation in the full-sky formalism, except the computation of N1
+biases and their derivatives (see the LensingBiases package).
+The code is fully-parallelized using mpi4py,
+and some Fortran parts make use of openmp (computation of N1).
 
 ### Before starting
 This code has the following dependencies:

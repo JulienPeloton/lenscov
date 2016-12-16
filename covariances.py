@@ -88,8 +88,9 @@ def covariances_main(args):
 		file_manager = util.file_manager(MODE, exp, 'v1', lmax, force_recomputation=False, folder=folder_cache,rank=rank)
 
 		if file_manager.FileExist is True:
-			## Load data instead of recomputing everything.
-			N0, blocks = file_manager.data
+			if rank == 0:
+				print 'Already computed in %s/'%folder_cache
+			sys.exit()
 		else:
 			N0, blocks = lib_spectra.compute_N0_XYWZ(cls_lensed, lmin=lmin, blocks=blocks,
 				noise_uK_arcmin=noise_uK_arcmin, fwhm_arcmin=fwhm_arcmin, MPI=MPI)
@@ -138,7 +139,9 @@ def covariances_main(args):
 									force_recomputation=False, folder=folder_cache,rank=rank)
 
 		if file_manager.FileExist is True:
-			cov_order0_tot, cov_order1_tot, cov_order2_tot, junk = file_manager.data
+			if rank == 0:
+				print 'Already computed in %s/'%folder_cache
+			sys.exit()
 		else:
 			cov_order0_tot, cov_order1_tot, cov_order2_tot, junk = lib_covariances.analytic_covariances_CMBxCMB(cls_unlensed,
 					cls_lensed,lmin=lmin,blocks=blocks,
@@ -157,7 +160,9 @@ def covariances_main(args):
 									force_recomputation=False, folder=folder_cache,rank=rank)
 
 		if file_manager.FileExist is True:
-			cov_MV, cov_MV_signal, cov_MV_noise, cov_MV_trispA, cov_MV_trispB, combinations_CMB = file_manager.data
+			if rank == 0:
+				print 'Already computed in %s/'%folder_cache
+			sys.exit()
 		else:
 			cov_MV, cov_MV_signal, cov_MV_noise, cov_MV_trispA, cov_MV_trispB, combinations_CMB = \
 							lib_covariances.analytic_covariances_phixCMB(cls_unlensed,cls_lensed,lmin=lmin,
@@ -177,7 +182,9 @@ def covariances_main(args):
 								force_recomputation=False, folder=folder_cache,rank=rank)
 
 		if file_manager.FileExist is True:
-			cov_MV, cov_RDN0_MV, blocks = file_manager.data
+			if rank == 0:
+				print 'Already computed in %s/'%folder_cache
+			sys.exit()
 		else:
 			cov_MV, cov_RDN0_MV, blocks = lib_covariances.analytic_covariances_phixphi(cls_unlensed,cls_lensed,lmin=lmin,
 							noise_uK_arcmin=noise_uK_arcmin,fwhm_arcmin=fwhm_arcmin,

@@ -5,11 +5,8 @@
 # Date of creation: 10/2015
 # See 1611.01446
 #########################
-import matplotlib
-matplotlib.use("Agg")
 import numpy as np
 import pylab as pl
-pl.ioff()
 import sys, copy, os, glob
 
 from scipy.weave import inline, converters
@@ -163,6 +160,7 @@ def gaussian_variance(cl11,cl22=None,cl12=None,ells=[],nzcount=None):
 	Output
 		* diag(gauss_var): 2D array, variance of the C_ell (diagonal matrix)
 	'''
+	ells = np.array(ells,dtype=int)
 	if nzcount is not None:
 		gauss_var = np.array( [(cl11[i]*cl22[i] + cl12[i]**2) / nzcount[i] for i in ells] ,dtype=float)
 		return np.diag(gauss_var)
@@ -185,6 +183,7 @@ def cross_gaussian_variance(cl1,cl2,ells):
 	Output
 		* diag(gauss_var): 2D array, variance of the C_ells (diagonal matrix)
 	'''
+	ells = np.array(ells,dtype=int)
 	gauss_var = np.array( [2.0*cl1[i]*cl2[i] / (2.0*i + 1.0) for i in ells] ,dtype=float)
 	return np.diag(gauss_var)
 

@@ -5,12 +5,9 @@
 # Date of creation: 10/2015
 # See 1611.01446
 #########################
-import matplotlib
-matplotlib.use("Agg")
 import glob, copy, sys, os
 import numpy as np
 import pylab as pl
-pl.ioff()
 
 import lib_covariances
 from loop_lensing import loop_lensing

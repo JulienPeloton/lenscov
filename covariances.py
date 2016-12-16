@@ -1,32 +1,17 @@
 # Copyright (C) 2016 Peloton
 #########################
 # Main script to compute CMB and lensing covariances
+# Package used to perform computation in 1611.01446
 # author: julien@sussex
 # See 1611.01446
 #########################
-import matplotlib
-matplotlib.use("Agg")
 import numpy as np
-import pylab as pl
-pl.ioff()
 
 import sys,os,glob
 import argparse
 
 import lib_covariances, lib_spectra
 import misc, util
-
-try:
-	import LensingBiases as LB
-except:
-	print 'You need to install the lensingbiases package'
-	print 'to compute N1. See '
-	print 'https://github.com/JulienPeloton/lensingbiases'
-
-font = {'family' : 'monospace',
-			  'weight' : 'bold',
-			  'size'   : 15}
-pl.rc('font', **font)
 
 ## Define
 DEBUG = False
@@ -41,7 +26,7 @@ def addargs(parser):
 
 def grabargs(args_param=None):
 	''' Parse command line arguments '''
-	parser = argparse.ArgumentParser(description='Main script to compute auto- and cross-covariances.')
+	parser = argparse.ArgumentParser(description='Main script to compute auto- and cross-covariances. See 1611.01446')
 	addargs(parser)
 	args = parser.parse_args(args_param)
 	return args
@@ -116,6 +101,12 @@ def covariances_main(args):
 		It uses the lensingbiases package (see https://github.com/JulienPeloton/lensingbiases)
 		The output is saved on the disk, and used later on.
 		'''
+		try:
+			import LensingBiases as LB
+		except:
+			print 'You need to install the lensingbiases package'
+			print 'to compute N1. See '
+			print 'https://github.com/JulienPeloton/lensingbiases'
 
 		## Initialization of file manager
 		file_manager = util.file_manager(MODE, exp, 'v1', lmax, force_recomputation=False, folder=folder_cache,rank=rank)

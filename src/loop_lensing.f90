@@ -1,5 +1,5 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! ju@sussex
+! Copyright (C) 2016 Peloton
 ! 10/2015
 ! FORTRAN routines to compute low level products
 ! Main purposes is interfacing with python (using f2py)

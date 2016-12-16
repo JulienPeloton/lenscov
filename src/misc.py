@@ -28,8 +28,8 @@ def get_exp_configuration(exp='_test_'):
 	if exp == '_test_':
 		lmin = 2
 		lmax = 250
-		noise_uK_arcmin = 0.0
-		fwhm_arcmin = 0.0
+		noise_uK_arcmin = 1.0
+		fwhm_arcmin = 1.0
 	elif exp == 'Planck':
 		'''
 		From Schmittfull et al 13

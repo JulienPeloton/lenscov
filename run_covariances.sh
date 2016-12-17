@@ -8,7 +8,7 @@
 main_script=covariances.py
 
 ## Input CAMB files
-unlensed_file=additional_files/planck_lensing_wp_highL_bestFit_20130627_scalCls.dat
+unlensed_file=additional_files/planck_lensing_wp_highL_bestFit_20130627_lenspotentialCls.dat
 lensed_file=additional_files/planck_lensing_wp_highL_bestFit_20130627_lensedCls.dat
 
 ## Choice between Planck, Core++, CMB-S4, and Ideal

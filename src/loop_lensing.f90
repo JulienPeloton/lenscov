@@ -435,6 +435,8 @@ contains
                     & dW_l1l2l3_x(il1min:il1max), indim, dier)
                 endif
 
+                il1max = MIN( il2 + il3 , ilmax)
+
                 do il1=il1min, il1max
                     if (il1 .lt. 2) CYCLE
                     dl1 = real(il1, kind=DP)

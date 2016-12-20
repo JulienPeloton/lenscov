@@ -552,21 +552,21 @@ class camb_clfile(object):
 			self.cltp_long = np.concatenate( [ np.zeros(lmin), tarray[0:(lmax_spec-lmin+1),6]/ell_spec**3/tcmb ] )
 
 		if tfname.split('.')[0].split('_')[-1] == 'scalCls':
-			tcmb  = 2.726*1e6 #uK
-			self.tcmb  = 2.726*1e6 #uK
+			tcmb  = 2.7255*1e6 #uK
+			self.tcmb  = 2.7255*1e6 #uK
 
 			self.cltt = np.concatenate( [ np.zeros(lmin), tarray[0:(lmax-lmin+1),1]*2.*np.pi/ell/(ell+1.) ] )
 			self.clee = np.concatenate( [ np.zeros(lmin), tarray[0:(lmax-lmin+1),2]*2.*np.pi/ell/(ell+1.) ] )
 			self.clte = np.concatenate( [ np.zeros(lmin), tarray[0:(lmax-lmin+1),3]*2.*np.pi/ell/(ell+1.) ] )
 			self.clbb = np.concatenate( [ np.zeros(lmin), np.zeros_like(tarray[0:(lmax-lmin+1),3]) ] )
-			self.clpp = np.concatenate( [ np.zeros(lmin), tarray[0:(lmax-lmin+1),4]/(ell*(ell+1))**2/tcmb**2 ] )
+			self.clpp = np.concatenate( [ np.zeros(lmin), tarray[0:(lmax-lmin+1),4]/ell**4/tcmb**2 ] )
 			self.cltp = np.concatenate( [ np.zeros(lmin), tarray[0:(lmax-lmin+1),5]/ell**3/tcmb ] )
 
 			self.cltt_long = np.concatenate( [ np.zeros(lmin), tarray[0:(lmax_spec-lmin+1),1]*2.*np.pi/ell_spec/(ell_spec+1.) ] )
 			self.clee_long = np.concatenate( [ np.zeros(lmin), tarray[0:(lmax_spec-lmin+1),2]*2.*np.pi/ell_spec/(ell_spec+1.) ] )
 			self.clte_long = np.concatenate( [ np.zeros(lmin), tarray[0:(lmax_spec-lmin+1),3]*2.*np.pi/ell_spec/(ell_spec+1.) ] )
 			self.clbb_long = np.concatenate( [ np.zeros(lmin), np.zeros_like(tarray[0:(lmax_spec-lmin+1),3]) ] )
-			self.clpp_long = np.concatenate( [ np.zeros(lmin), tarray[0:(lmax_spec-lmin+1),4]/(ell_spec*(ell_spec+1))**2/tcmb**2 ] )
+			self.clpp_long = np.concatenate( [ np.zeros(lmin), tarray[0:(lmax_spec-lmin+1),4]/ell_spec**4/tcmb**2 ] )
 			self.cltp_long = np.concatenate( [ np.zeros(lmin), tarray[0:(lmax_spec-lmin+1),5]/ell_spec**3/tcmb ] )
 
 

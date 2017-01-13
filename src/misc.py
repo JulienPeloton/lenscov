@@ -30,6 +30,7 @@ def get_exp_configuration(exp='_test_'):
 		lmax = 250
 		noise_uK_arcmin = 1.0
 		fwhm_arcmin = 1.0
+		TTcorr = False
 	elif exp == 'Planck':
 		'''
 		From Schmittfull et al 13
@@ -38,6 +39,7 @@ def get_exp_configuration(exp='_test_'):
 		lmax = 2500
 		noise_uK_arcmin = 27.0
 		fwhm_arcmin = 7.0
+		TTcorr = False
 	elif exp == 'Core++':
 		'''
 		From Jojo article (1509.06770) @ 150 GHz
@@ -46,6 +48,7 @@ def get_exp_configuration(exp='_test_'):
 		lmax = 4000
 		noise_uK_arcmin = 5.0
 		fwhm_arcmin = 6.0
+		TTcorr = False
 	elif exp == 'CMB-S4':
 		'''
 		From Jojo article (1509.06770) @ 150 GHz
@@ -57,8 +60,18 @@ def get_exp_configuration(exp='_test_'):
 		lmax = 3000
 		noise_uK_arcmin = 1.5
 		fwhm_arcmin = 3.0
+		TTcorr = False
+	elif exp == 'CMB-S4_noisecorr':
+		'''
+		Same as above, but with a correlated noise component for the noise.
+		'''
+		lmin = 20
+		lmax = 3000
+		noise_uK_arcmin = 1.5
+		fwhm_arcmin = 3.0
+		TTcorr = 1000
 
-	return noise_uK_arcmin, fwhm_arcmin, lmin, lmax, folder_cache
+	return noise_uK_arcmin, fwhm_arcmin, lmin, lmax, TTcorr, folder_cache
 
 def add_text_imshow(ax,text,array):
 	lmin=0

@@ -6,7 +6,6 @@
 # See 1611.01446
 #########################
 import numpy as np
-import pylab as pl
 import sys, copy, os, glob
 
 from scipy.weave import inline, converters
@@ -190,7 +189,7 @@ def cross_gaussian_variance(cl1,cl2,ells):
 ########################################################################
 # Main functions to compute the covariances
 
-def precompute_trispB(cls_unlensed,cls_lensed,combination='TTTT',lmin=2,noise_uK_arcmin=0.0,
+def precompute_trispB(cls_unlensed,cls_lensed,combination='TTTT',lmin=2,noise_uK_arcmin=0.0,TTcorr=False,
 				fwhm_arcmin=0.0,MPI=None,exp='CMB-S4',folder_cache='cache'):
 	'''
 	This routine returns the terms sum_l g_XY f_ZW necessary for the Type B trispectrum contribution for the cross-covariance.
@@ -202,6 +201,7 @@ def precompute_trispB(cls_unlensed,cls_lensed,combination='TTTT',lmin=2,noise_uK
 		* combination: string, names XYZW for the weight functions (e.g. TTTT, EEEE, BBBB, EEBB, etc).
 		* lmin: int, minimum multipole.
 		* noise_uK_arcmin: float, white noise level to be used (in uK.arcmin).
+		* TTcorr: : int, cut-off in ell for correlated noise
 		* fwhm_arcmin: float, beam FWHM to be used.
 		* MPI: module, module to pass if you want to parallelize the computation. If None, the computation is done serially.
 		* exp: string, name of the experiment you chose according to misc.py
@@ -232,33 +232,33 @@ def precompute_trispB(cls_unlensed,cls_lensed,combination='TTTT',lmin=2,noise_uK
 
 	## If ET or BE, load as if it was TE and EB, and inside the code, everything is done correctly.
 	if flavor1 in ['et', 'be']:
-		cl_len_XX1, cl_len_YY1, cl_len_XY1 = lib_spectra.load_weights(cls_lensed, 'cl'+flavor1[1]+flavor1[0], noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long')
+		cl_len_XX1, cl_len_YY1, cl_len_XY1 = lib_spectra.load_weights(cls_lensed, 'cl'+flavor1[1]+flavor1[0], noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
 		spinl2_x1, spinl3_x1, spinl2_y1, spinl3_y1 = lib_spectra.load_spin_values_wigner('cl'+flavor1[1]+flavor1[0])
 	elif flavor1 == 'tb':
-		cl_len_XX1, cl_len_YY1, junk = lib_spectra.load_weights(cls_lensed, 'cl'+flavor1, noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long')
-		junk1, junk2, cl_len_XY1 = lib_spectra.load_weights(cls_lensed, 'clte', noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long')
+		cl_len_XX1, cl_len_YY1, junk = lib_spectra.load_weights(cls_lensed, 'cl'+flavor1, noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
+		junk1, junk2, cl_len_XY1 = lib_spectra.load_weights(cls_lensed, 'clte', noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
 		spinl2_x1, spinl3_x1, spinl2_y1, spinl3_y1 = lib_spectra.load_spin_values_wigner('cl'+flavor1)
 	elif flavor1 == 'bt':
-		cl_len_XX1, cl_len_YY1, junk = lib_spectra.load_weights(cls_lensed, 'cl'+flavor1[1]+flavor1[0], noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long')
-		junk1, junk2, cl_len_XY1 = lib_spectra.load_weights(cls_lensed, 'clte', noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long')
+		cl_len_XX1, cl_len_YY1, junk = lib_spectra.load_weights(cls_lensed, 'cl'+flavor1[1]+flavor1[0], noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
+		junk1, junk2, cl_len_XY1 = lib_spectra.load_weights(cls_lensed, 'clte', noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
 		spinl2_x1, spinl3_x1, spinl2_y1, spinl3_y1 = lib_spectra.load_spin_values_wigner('cl'+flavor1[1]+flavor1[0])
 	else:
-		cl_len_XX1, cl_len_YY1, cl_len_XY1 = lib_spectra.load_weights(cls_lensed, 'cl'+flavor1, noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long')
+		cl_len_XX1, cl_len_YY1, cl_len_XY1 = lib_spectra.load_weights(cls_lensed, 'cl'+flavor1, noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
 		spinl2_x1, spinl3_x1, spinl2_y1, spinl3_y1 = lib_spectra.load_spin_values_wigner('cl'+flavor1)
 
 	if flavor2 in ['et', 'be']:
-		cl_len_XX2, cl_len_YY2, cl_len_XY2 = lib_spectra.load_weights(cls_lensed, 'cl'+flavor2[1]+flavor2[0], noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long')
+		cl_len_XX2, cl_len_YY2, cl_len_XY2 = lib_spectra.load_weights(cls_lensed, 'cl'+flavor2[1]+flavor2[0], noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
 		spinl2_x2, spinl3_x2, spinl2_y2, spinl3_y2 = lib_spectra.load_spin_values_wigner('cl'+flavor2[1]+flavor2[0])
 	elif flavor2 == 'tb':
-		cl_len_XX2, cl_len_YY2, junk = lib_spectra.load_weights(cls_lensed, 'cl'+flavor2, noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long')
-		junk1, junk2, cl_len_XY2 = lib_spectra.load_weights(cls_lensed, 'clte', noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long')
+		cl_len_XX2, cl_len_YY2, junk = lib_spectra.load_weights(cls_lensed, 'cl'+flavor2, noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
+		junk1, junk2, cl_len_XY2 = lib_spectra.load_weights(cls_lensed, 'clte', noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
 		spinl2_x2, spinl3_x2, spinl2_y2, spinl3_y2 = lib_spectra.load_spin_values_wigner('cl'+flavor2)
 	elif flavor2 == 'bt':
-		cl_len_XX2, cl_len_YY2, junk = lib_spectra.load_weights(cls_lensed, 'cl'+flavor2[1]+flavor2[0], noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long')
-		junk1, junk2, cl_len_XY2 = lib_spectra.load_weights(cls_lensed, 'clte', noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long')
+		cl_len_XX2, cl_len_YY2, junk = lib_spectra.load_weights(cls_lensed, 'cl'+flavor2[1]+flavor2[0], noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
+		junk1, junk2, cl_len_XY2 = lib_spectra.load_weights(cls_lensed, 'clte', noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
 		spinl2_x2, spinl3_x2, spinl2_y2, spinl3_y2 = lib_spectra.load_spin_values_wigner('cl'+flavor2[1]+flavor2[0])
 	else:
-		cl_len_XX2, cl_len_YY2, cl_len_XY2 = lib_spectra.load_weights(cls_lensed, 'cl'+flavor2, noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long')
+		cl_len_XX2, cl_len_YY2, cl_len_XY2 = lib_spectra.load_weights(cls_lensed, 'cl'+flavor2, noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
 		spinl2_x2, spinl3_x2, spinl2_y2, spinl3_y2 = lib_spectra.load_spin_values_wigner('cl'+flavor2)
 
 	## Computation of the derivatives
@@ -277,7 +277,7 @@ def precompute_trispB(cls_unlensed,cls_lensed,combination='TTTT',lmin=2,noise_uK
 
 	return trispB_tot
 
-def analytic_covariances_CMBxCMB(cls_unlensed,cls_lensed,lmin=2,blocks=['TTTT'],noise_uK_arcmin=0.0,
+def analytic_covariances_CMBxCMB(cls_unlensed,cls_lensed,lmin=2,blocks=['TTTT'],noise_uK_arcmin=0.0,TTcorr=False,
 		fwhm_arcmin=0.0,MPI=None,use_corrfunc=False,exp='CMB-S4',folder_cache='cache'):
 	'''
 	This routine computes the autocovariance of lensed CMB spectra at second order in C^{phi phi}.
@@ -293,6 +293,7 @@ def analytic_covariances_CMBxCMB(cls_unlensed,cls_lensed,lmin=2,blocks=['TTTT'],
 		* lmin: int, minimum multipole.
 		* blocks: list of strings, names for the two 2-pt functions (e.g. [TTTT, EEEE, BBBB, EEBB]).
 		* noise_uK_arcmin: float, white noise level to be used (in uK.arcmin).
+		* TTcorr: : int, cut-off in ell for correlated noise
 		* fwhm_arcmin: float, beam FWHM to be used.
 		* MPI: module, module to pass if you want to parallelize the computation. If None,
 						the computation is done serially.
@@ -361,10 +362,10 @@ def analytic_covariances_CMBxCMB(cls_unlensed,cls_lensed,lmin=2,blocks=['TTTT'],
 		## Load weights (lensed spectra, and their noisy version)
 		if block in ['TETE', 'TTTE', 'EETE']:
 			cl_len_XX, cl_len_YY, cl_len_XY = lib_spectra.load_weights(cls_lensed, 'clte',
-										noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long')
+										noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
 		else:
 			cl_len_XX, cl_len_YY, cl_len_XY = lib_spectra.load_weights(cls_lensed, flavor,
-										noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long')
+										noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
 
 		## Gaussian variance
 		if block == 'TTEE':
@@ -397,7 +398,7 @@ def analytic_covariances_CMBxCMB(cls_unlensed,cls_lensed,lmin=2,blocks=['TTTT'],
 
 		## Load weights (lensed spectra, and their noisy version)
 		cl_unlen_TT, cl_unlen_EE, cl_unlen_TE = lib_spectra.load_weights(cls_unlensed, 'clte',
-										noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long')
+										noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
 		cl_unlen_vec = np.array([cl_unlen_TT[0], cl_unlen_EE[0], np.zeros_like(cl_unlen_TT[0]), cl_unlen_TE[0]])
 
 		## Load weights (unlensed spectra)
@@ -583,7 +584,7 @@ def analytic_covariances_CMBxCMB(cls_unlensed,cls_lensed,lmin=2,blocks=['TTTT'],
 											gaussvar_phiphi_nonoise,dCMB_over_dcpp_tot[index_derivative_BB],lstart=lmin)
 				## Second term in O(clpp^2) uses unlensed TE
 				cl_unlen_XX, cl_unlen_YY, cl_unlen_XY = lib_spectra.load_weights(cls_unlensed, 'clte',
-														noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long')
+														noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
 				gaussvar_TE_unlensed = np.diag(cross_gaussian_variance(cl1=cl_unlen_XY[0],cl2=cl_unlen_XY[0],ells=cls_lensed.ls))
 				cov_order2_tot[index_block].data += vecmat(gaussvar_TE_unlensed,dBB_over_dEE_tot,lstart=lmin)
 			elif block == 'TETE':
@@ -607,13 +608,13 @@ def analytic_covariances_CMBxCMB(cls_unlensed,cls_lensed,lmin=2,blocks=['TTTT'],
 												gaussvar_phiphi_nonoise,dCMB_over_dcpp_tot[index_derivative_BB],lstart=lmin)
 				## Second term in O(clpp^2) uses unlensed EE and TE
 				cl_unlen_XX, cl_unlen_YY, cl_unlen_XY = lib_spectra.load_weights(cls_unlensed, 'clte',
-															noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long')
+															noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
 				gaussvar_EETE_unlensed = np.diag(cross_gaussian_variance(cl1=cl_unlen_YY[1],cl2=cl_unlen_XY[1],ells=cls_lensed.ls))
 				cov_order2_tot[index_block].data += vecmat(gaussvar_EETE_unlensed,dBB_over_dEE_tot,lstart=lmin)
 
 	return cov_order0_tot, cov_order1_tot, cov_order2_tot, blocks
 
-def analytic_covariances_phixCMB(cls_unlensed,cls_lensed,lmin=2,noise_uK_arcmin=0.0,fwhm_arcmin=0.0,
+def analytic_covariances_phixCMB(cls_unlensed,cls_lensed,lmin=2,noise_uK_arcmin=0.0,TTcorr=False,fwhm_arcmin=0.0,
 				MPI=None,use_corrfunc=False,exp='CMB-S4',folder_cache='cache',path_to_N1matrix=''):
 	'''
 	This routine computes the covariance between lensed CMB spectrum and the lensing potential power spectrum.
@@ -628,6 +629,7 @@ def analytic_covariances_phixCMB(cls_unlensed,cls_lensed,lmin=2,noise_uK_arcmin=
 		* lmin: int, minimum multipole.
 		* blocks: list of strings, corresponds to phi_XY phi_WZ x UV (e.g. [TTTT_TT, EEEE_EE, BBBB_BB, EBEB_EE, EBEB_BB])
 		* noise_uK_arcmin: float, white noise level to be used (in uK.arcmin).
+		* TTcorr: : int, cut-off in ell for correlated noise
 		* fwhm_arcmin: float, beam FWHM to be used.
 		* MPI: module, module to pass if you want to parallelize the computation. If None, the computation is done serially.
 		* use_corrfunc: boolean, if True use correlation function method to compute derivatives.
@@ -734,58 +736,58 @@ def analytic_covariances_phixCMB(cls_unlensed,cls_lensed,lmin=2,noise_uK_arcmin=
 			## Load spins
 			if block == 'TETE_TE':
 				cl_len_XX, cl_len_YY, cl_len_XY = lib_spectra.load_weights(cls_lensed, 'clte', noise_uK_arcmin,
-														fwhm_arcmin, 2*lmax, extra='_long')
+														fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
 				spinl2_x, spinl3_x, spinl2_y, spinl3_y = lib_spectra.load_spin_values_wigner('clte')
 				flavor = 'cltete_te' ## used for the derivative
 			elif block == 'TETE_TT':
 				cl_len_XX, cl_len_YY, cl_len_XY = lib_spectra.load_weights(cls_lensed, 'clte', noise_uK_arcmin,
-														fwhm_arcmin, 2*lmax, extra='_long')
+														fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
 				spinl2_x, spinl3_x, spinl2_y, spinl3_y = lib_spectra.load_spin_values_wigner('clte')
 				flavor = 'cltete_tt' ## used for the derivative
 			elif block == 'TTTE_TT':
 				cl_len_XX, cl_len_YY, cl_len_XY = lib_spectra.load_weights(cls_lensed, 'clte', noise_uK_arcmin,
-														fwhm_arcmin, 2*lmax, extra='_long')
+														fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
 				spinl2_x, spinl3_x, spinl2_y, spinl3_y = lib_spectra.load_spin_values_wigner('clte')
 				flavor = 'clttte_tt' ## used for the derivative
 			elif block == 'TTTE_TE':
 				cl_len_XX, cl_len_YY, cl_len_XY = lib_spectra.load_weights(cls_lensed, 'clte', noise_uK_arcmin,
-														fwhm_arcmin, 2*lmax, extra='_long')
+														fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
 				spinl2_x, spinl3_x, spinl2_y, spinl3_y = lib_spectra.load_spin_values_wigner('clte')
 				flavor = 'clttte_te' ## used for the derivative
 			elif block == 'EETE_EE':
 				cl_len_XX, cl_len_YY, cl_len_XY = lib_spectra.load_weights(cls_lensed, 'clte', noise_uK_arcmin,
-														fwhm_arcmin, 2*lmax, extra='_long')
+														fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
 				spinl2_x, spinl3_x, spinl2_y, spinl3_y = lib_spectra.load_spin_values_wigner('clte')
 				flavor = 'cleete_ee' ## used for the derivative
 			elif block == 'EETE_TE':
 				cl_len_XX, cl_len_YY, cl_len_XY = lib_spectra.load_weights(cls_lensed, 'clte', noise_uK_arcmin,
-														fwhm_arcmin, 2*lmax, extra='_long')
+														fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
 				spinl2_x, spinl3_x, spinl2_y, spinl3_y = lib_spectra.load_spin_values_wigner('clte')
 				flavor = 'cleete_te' ## used for the derivative
 			elif block == 'TETE_EE':
 				cl_len_XX, cl_len_YY, cl_len_XY = lib_spectra.load_weights(cls_lensed, 'clte', noise_uK_arcmin,
-														fwhm_arcmin, 2*lmax, extra='_long')
+														fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
 				spinl2_x, spinl3_x, spinl2_y, spinl3_y = lib_spectra.load_spin_values_wigner('clte')
 				flavor = 'cltete_ee' ## used for the derivative
 			elif block == 'TTEE_TE':
 				cl_len_XX, cl_len_YY, cl_len_XY = lib_spectra.load_weights(cls_lensed, 'clte', noise_uK_arcmin,
-														fwhm_arcmin, 2*lmax, extra='_long')
+														fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
 				spinl2_x, spinl3_x, spinl2_y, spinl3_y = lib_spectra.load_spin_values_wigner('clte')
 				flavor = 'clttee_te' ## used for the derivative
 			elif block == 'EBEB_EE':
 				cl_len_XX, cl_len_YY, cl_len_XY = lib_spectra.load_weights(cls_lensed, flavor, noise_uK_arcmin,
-														fwhm_arcmin, 2*lmax, extra='_long')
+														fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
 				spinl2_x, spinl3_x, spinl2_y, spinl3_y = lib_spectra.load_spin_values_wigner(flavor)
 				flavor = 'clebeb_ee'
 			elif block == 'EBEB_BB':
 				## Swap  the values
 				cl_len_YY, cl_len_XX, cl_len_XY = lib_spectra.load_weights(cls_lensed, flavor, noise_uK_arcmin,
-														fwhm_arcmin, 2*lmax, extra='_long')
+														fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
 				spinl2_x, spinl3_x, spinl2_y, spinl3_y = lib_spectra.load_spin_values_wigner(flavor)
 				flavor = 'clebeb_ee'
 			else:
 				cl_len_XX, cl_len_YY, cl_len_XY = lib_spectra.load_weights(cls_lensed, flavor, noise_uK_arcmin,
-														fwhm_arcmin, 2*lmax, extra='_long')
+														fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
 				spinl2_x, spinl3_x, spinl2_y, spinl3_y = lib_spectra.load_spin_values_wigner(flavor)
 
 			weight_len_XX = np.zeros((2,2*(lmax+EXTRA_MULTIPOLES_lensing)+1),dtype=float)
@@ -852,7 +854,7 @@ def analytic_covariances_phixCMB(cls_unlensed,cls_lensed,lmin=2,noise_uK_arcmin=
 		if rank==0: print 'Computing CMBxCMB part'
 		blocks_CMBxCMB = ['TTTT', 'EEEE', 'BBBB', 'EEBB', 'TTEE', 'TTBB', 'TETE', 'TTTE', 'EETE', 'TEBB']
 		cov_order0_CMBxCMB, cov_order1_CMBxCMB, cov_order2_CMBxCMB, blocks_CMBxCMB = analytic_covariances_CMBxCMB(cls_unlensed,cls_lensed,
-				lmin=lmin,blocks=blocks_CMBxCMB, noise_uK_arcmin=noise_uK_arcmin,
+				lmin=lmin,blocks=blocks_CMBxCMB, noise_uK_arcmin=noise_uK_arcmin,TTcorr=TTcorr,
 				fwhm_arcmin=fwhm_arcmin, MPI=MPI,exp=exp,folder_cache=folder_cache)
 
 
@@ -997,7 +999,7 @@ def analytic_covariances_phixCMB(cls_unlensed,cls_lensed,lmin=2,noise_uK_arcmin=
 
 				## Load the cl
 				junk, junk2, cl2_len = lib_spectra.load_weights(cls_lensed, 'cl'+cl_name.lower(),
-												noise_uK_arcmin, fwhm_arcmin, lmax, extra='')
+												noise_uK_arcmin, fwhm_arcmin, lmax, extra='',TTcorr=TTcorr)
 
 				## Load N0
 				index_N0 = names_for_N0.index(n0_name)
@@ -1053,7 +1055,7 @@ def analytic_covariances_phixCMB(cls_unlensed,cls_lensed,lmin=2,noise_uK_arcmin=
 	## well done.
 	return cov_MV, cov_MV_signal, cov_MV_noise, cov_MV_trispA, cov_MV_trispB, combinations_CMB
 
-def analytic_covariances_phixphi(cls_unlensed,cls_lensed,lmin=2,noise_uK_arcmin=0.0,fwhm_arcmin=0.0,MPI=None,
+def analytic_covariances_phixphi(cls_unlensed,cls_lensed,lmin=2,noise_uK_arcmin=0.0,TTcorr=False,fwhm_arcmin=0.0,MPI=None,
 						exp='CMB-S4',folder_cache='cache',fn_n1=None):
 	'''
 	This routine computes the auto covariance (correlation) of the lensing potential power spectrum
@@ -1067,6 +1069,7 @@ def analytic_covariances_phixphi(cls_unlensed,cls_lensed,lmin=2,noise_uK_arcmin=
 		* cls_lensed: camb_clfile object, containing lensed power spectra.
 		* lmin: int, minimum multipole.
 		* noise_uK_arcmin: float, white noise level to be used (in uK.arcmin).
+		* TTcorr: : int, cut-off in ell for correlated noise
 		* fwhm_arcmin: float, beam FWHM to be used.
 		* MPI: module, module to pass if you want to parallelize the computation. If None, the computation is done serially.
 		* exp: string, name of the experiment you chose according to misc.py
@@ -1193,7 +1196,7 @@ def analytic_covariances_phixphi(cls_unlensed,cls_lensed,lmin=2,noise_uK_arcmin=
 		#############################################################
 		## Connected 8-pt (see App A2 in the paper)
 		#############################################################
-		cl_len_TT, cl_len_EE, cl_len_TE = lib_spectra.load_weights(cls_lensed, 'clte', noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long')
+		cl_len_TT, cl_len_EE, cl_len_TE = lib_spectra.load_weights(cls_lensed, 'clte', noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
 		cl_len_BB, junk1, junk2 = lib_spectra.load_weights(cls_lensed, 'clbb', noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long')
 		dic_spectra = {'TT':cl_len_TT[1], 'EE':cl_len_EE[1], 'TE':cl_len_TE[1], 'BB':cl_len_BB[1]}
 		for comb in ['TTTT_TTTT','EEEE_EEEE','BBBB_BBBB','TETE_TETE']:
@@ -1537,14 +1540,6 @@ class covmat(object):
 		else:
 			assert(0)
 
-	def plot(self, p=pl.imshow, **kwargs):
-		"""
-		Plot the matrix (use imshow by default)
-		Input
-			* p: function, plotting function to use p(x,y,**kwargs)
-		"""
-		p(self.data, **kwargs )
-
 	def correlation_matrix(self, lmin=2, remove_diag=False):
 		'''
 		Compute correlation matrix from covariance matrix.
@@ -1715,14 +1710,6 @@ class covmatbinned(object):
 			return ret
 		else:
 			assert(0)
-
-	def plot(self, p=pl.imshow, **kwargs):
-		"""
-		Plot the matrix (use imshow by default)
-		Input
-			* p: function, plotting function to use p(x,y,**kwargs)
-		"""
-		p(self.data, **kwargs )
 
 	def correlation_matrix(self, startbin=0, remove_diag=False):
 		'''

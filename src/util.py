@@ -9,7 +9,6 @@
 import glob,sys,os
 import cPickle as pickle
 import errno
-import pylab as pl
 import numpy as np
 
 ########################################################################
@@ -61,7 +60,7 @@ class binner4cov():
 		P = np.zeros((self.nbins,self.lmax+1))
 		for index_b,[b_l,b_r] in enumerate(self.bin_boundaries):
 			for ell in range(b_l,b_r):
-				norm = (self.bin_centers[index_b]*(self.bin_centers[index_b]+1))**alpha * self.bin_size[index_b]
+				norm = (self.bin_centers[index_b]*(self.bin_centers[index_b]+1.))**alpha * self.bin_size[index_b]
 				P[index_b][ell] = (ell*(ell+1))**alpha / norm
 		return P
 
@@ -351,6 +350,7 @@ class file_manager(object):
 		else:
 			fn = os.path.join(plot_folder,self.basefn)
 		fn += extension
+		import pylab as pl
 		pl.savefig(fn)
 		pl.clf()
 		if self.rank==0: print 'figure saved on disk at', fn

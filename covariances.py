@@ -53,13 +53,14 @@ def covariances_main(args):
 
 	MODE = args.runmode
 	exp = args.exp
-	noise_uK_arcmin, fwhm_arcmin, lmin, lmax, folder_cache = misc.get_exp_configuration(exp)
+	noise_uK_arcmin, fwhm_arcmin, lmin, lmax, TTcorr, folder_cache = misc.get_exp_configuration(exp)
 
 	if rank == 0:
 		if DEBUG: print args
 		print '+-----------------------------+'
 		print '+ Exp:			   ',exp
 		print '+ Noise (uK.arcmin): ',noise_uK_arcmin
+		print '+ TTcorr:          ',TTcorr
 		print '+ FWHM (arcmin):	 ',fwhm_arcmin
 		print '+ lmin:			  ',lmin
 		print '+ lmax:			  ',lmax
@@ -93,7 +94,7 @@ def covariances_main(args):
 			sys.exit()
 		else:
 			N0, blocks = lib_spectra.compute_N0_XYWZ(cls_lensed, lmin=lmin, blocks=blocks,
-				noise_uK_arcmin=noise_uK_arcmin, fwhm_arcmin=fwhm_arcmin, MPI=MPI)
+				noise_uK_arcmin=noise_uK_arcmin, TTcorr=TTcorr, fwhm_arcmin=fwhm_arcmin, MPI=MPI)
 			array_to_save = [N0, blocks]
 
 	if MODE == 'N1':
@@ -114,18 +115,21 @@ def covariances_main(args):
 
 		LB.checkproc_py()
 
+		if TTcorr is False:
+			TTcorr = 2
+
 		## We need to compute N0 for internal purposes (flat-sky, so not used afterwards)
 		bins, phiphi, n0_mat, indices = LB.compute_n0_py(from_args=None,phifile=args.input_unlensed_spectra,
 							lensedcmbfile=args.input_lensed_spectra,
 							FWHM=fwhm_arcmin,noise_level=noise_uK_arcmin,
-							lmin=lmin,lmaxout=lmax,lmax=lmax,lmax_TT=lmax,
+							lmin=lmin,lmaxout=lmax,lmax=lmax,lmax_TT=lmax,lcorr_TT=TTcorr,
 							tmp_output='N1/%s'%exp)
 
 		## Compute N1, and derivatives of N1 wrt lensing potential power-spectrum
 		LB.compute_n1_derivatives_py(from_args=None,phifile=args.input_unlensed_spectra,
 							lensedcmbfile=args.input_lensed_spectra,
 							FWHM=fwhm_arcmin,noise_level=noise_uK_arcmin,
-							lmin=lmin,lmaxout=lmax,lmax=lmax,lmax_TT=lmax,
+							lmin=lmin,lmaxout=lmax,lmax=lmax,lmax_TT=lmax,lcorr_TT=TTcorr,
 							tmp_output='N1/%s'%exp)
 		sys.exit()
 
@@ -145,7 +149,7 @@ def covariances_main(args):
 		else:
 			cov_order0_tot, cov_order1_tot, cov_order2_tot, junk = lib_covariances.analytic_covariances_CMBxCMB(cls_unlensed,
 					cls_lensed,lmin=lmin,blocks=blocks,
-					noise_uK_arcmin=noise_uK_arcmin,fwhm_arcmin=fwhm_arcmin, MPI=MPI,
+					noise_uK_arcmin=noise_uK_arcmin,TTcorr=TTcorr,fwhm_arcmin=fwhm_arcmin, MPI=MPI,
 					use_corrfunc=True,exp=exp,folder_cache=folder_cache)
 			array_to_save = [cov_order0_tot, cov_order1_tot, cov_order2_tot, blocks]
 
@@ -166,7 +170,7 @@ def covariances_main(args):
 		else:
 			cov_MV, cov_MV_signal, cov_MV_noise, cov_MV_trispA, cov_MV_trispB, combinations_CMB = \
 							lib_covariances.analytic_covariances_phixCMB(cls_unlensed,cls_lensed,lmin=lmin,
-							noise_uK_arcmin=noise_uK_arcmin,fwhm_arcmin=fwhm_arcmin,MPI=MPI,use_corrfunc=True,exp=exp,
+							noise_uK_arcmin=noise_uK_arcmin,TTcorr=TTcorr,fwhm_arcmin=fwhm_arcmin,MPI=MPI,use_corrfunc=True,exp=exp,
 							folder_cache=folder_cache,path_to_N1matrix=path_to_N1matrix)
 			array_to_save = [cov_MV, cov_MV_signal, cov_MV_noise, cov_MV_trispA, cov_MV_trispB, combinations_CMB]
 
@@ -187,7 +191,7 @@ def covariances_main(args):
 			sys.exit()
 		else:
 			cov_MV, cov_RDN0_MV, blocks = lib_covariances.analytic_covariances_phixphi(cls_unlensed,cls_lensed,lmin=lmin,
-							noise_uK_arcmin=noise_uK_arcmin,fwhm_arcmin=fwhm_arcmin,
+							noise_uK_arcmin=noise_uK_arcmin,TTcorr=TTcorr,fwhm_arcmin=fwhm_arcmin,
 							MPI=MPI,exp=exp,folder_cache=folder_cache,fn_n1=fn_n1)
 
 			array_to_save = [cov_MV, cov_RDN0_MV, blocks]
@@ -216,7 +220,7 @@ def covariances_main(args):
 						'EBTB','BETB','BEBT']
 		for combination in combinations:
 			trispB = lib_covariances.precompute_trispB(cls_unlensed,cls_lensed,combination=combination,lmin=lmin,
-								noise_uK_arcmin=noise_uK_arcmin,fwhm_arcmin=fwhm_arcmin,
+								noise_uK_arcmin=noise_uK_arcmin,TTcorr=TTcorr,fwhm_arcmin=fwhm_arcmin,
 								MPI=MPI,exp=exp,folder_cache=folder_cache)
 
 			array_to_save = [trispB, combination]
@@ -229,7 +233,7 @@ def covariances_main(args):
 			if combination[0:2] != combination[2:4]:
 				trispB = lib_covariances.precompute_trispB(cls_unlensed,cls_lensed,
 									combination=combination[2:4]+combination[:2],lmin=lmin,
-									noise_uK_arcmin=noise_uK_arcmin,fwhm_arcmin=fwhm_arcmin,
+									noise_uK_arcmin=noise_uK_arcmin,TTcorr=TTcorr,fwhm_arcmin=fwhm_arcmin,
 									MPI=MPI,exp=exp,folder_cache=folder_cache)
 
 				array_to_save = [trispB, combination]

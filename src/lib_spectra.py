@@ -7,7 +7,6 @@
 #########################
 import glob, copy, sys, os
 import numpy as np
-import pylab as pl
 
 import lib_covariances
 from loop_lensing import loop_lensing
@@ -41,19 +40,19 @@ def nl(noise_uK_arcmin, fwhm_arcmin, lmax):
 	"""
 	return (noise_uK_arcmin * np.pi/180./60.)**2 / bl(fwhm_arcmin, lmax)**2
 
-def nlcorr(noise_uK_arcmin, fwhm_arcmin, lmax, TTcorrelatednoise=100.):
+def nlcorr(noise_uK_arcmin, fwhm_arcmin, lmax, TTcorr):
 	""" returns the beam-deconvolved noise power spectrum in units of uK^2
 	with a correlated component (low-ell contamination).
 	Input
 		 * noise_uK_arcmin: float, map noise level in uK.arcmin
 		 * fwhm_arcmin: float, beam full-width-at-half-maximum (fwhm) in arcmin.
 		 * lmax: int, maximum multipole.
-		 * TTcorrelatednoise: cutoff for the correlations in ell space
+		 * TTcorr: : int, cut-off in ell for correlated noise
 	Output
 		 * nell: 1D array, the noise power spectrum
 	"""
 	ls = np.arange(0, lmax+1)
-	correlation = ( 1. + 1./(ls/float(TTcorrelatednoise))**.5 )
+	correlation = ( 1. + (float(TTcorr)/ls)**4 )
 	correlation[0] = correlation[1]
 	return correlation * (noise_uK_arcmin * np.pi/180./60.)**2 / bl(fwhm_arcmin, lmax)**2
 
@@ -64,7 +63,8 @@ def add_noise_to_cl(cl,noise_uK_arcmin,fwhm_arcmin,lmax,spec='',TTcutoff=False,T
 		 * noise_uK_arcmin: float, map noise level in uK.arcmin
 		 * fwhm_arcmin: float, beam full-width-at-half-maximum (fwhm) in arcmin.
 		 * lmax: int, maximum multipole.
-		 * observable: string, T or P, or TP.
+		 * spec: string, clxy where xy \in tt, ee, te, bb, eb, or tb.
+		 * TTcorr: : int, cut-off in ell for correlated noise
 	Output
 		 * cl_noisy: 1D array, the sum of signal and noise (length lmax+1)
 	"""
@@ -78,8 +78,8 @@ def add_noise_to_cl(cl,noise_uK_arcmin,fwhm_arcmin,lmax,spec='',TTcutoff=False,T
 			print 'You apply a cutoff at ell_cut=3000'
 			return cl + nl(noise_uK_arcmin, fwhm_arcmin, lmax) + nl(1.e-6, 15, lmax)
 		elif TTcorr:
-			print 'You load 1/f noise'
-			return cl + nlcorr(noise_uK_arcmin, fwhm_arcmin, lmax, TTcorrelatednoise=100.)
+			print 'You load 1/f noise for %s'%spec
+			return cl + nlcorr(noise_uK_arcmin, fwhm_arcmin, lmax, TTcorr=TTcorr)
 		else:
 			return cl + nl(noise_uK_arcmin, fwhm_arcmin, lmax)
 	elif spec in ['clee', 'clbb']:
@@ -111,7 +111,7 @@ def load_spin_values_wigner(flavor):
 ########################################################################
 # Weights for the quadratic estimator
 
-def load_weights(cls_class,flavor, noise_uK_arcmin, fwhm_arcmin, lmax, extra=''):
+def load_weights(cls_class,flavor, noise_uK_arcmin, fwhm_arcmin, lmax, extra='',TTcorr=False):
 	'''
 	Load the weights used for N0 computation.
 	Input:
@@ -120,6 +120,8 @@ def load_weights(cls_class,flavor, noise_uK_arcmin, fwhm_arcmin, lmax, extra='')
 		* noise_uK_arcmin: float, white noise level to be used (in uK.arcmin).
 		* fwhm_arcmin: float, beam FWHM to be used.
 		* lmax: int, the maximum multipole. Currently accepted: lmax, 2*lmax (extra=_long)
+		* extra: int, see lmax.
+		* TTcorr: : int, cut-off in ell for correlated noise
 	Output
 		* cl_XX: 2D-array, contain cl_xx and cl_xx_noisy.
 	'''
@@ -136,7 +138,7 @@ def load_weights(cls_class,flavor, noise_uK_arcmin, fwhm_arcmin, lmax, extra='')
 		cl_lensed_XY = getattr(cls_class, 'cl%s%s%s'%(xfield,yfield,extra))
 
 	if flavor =='cltb':
-		cl_lensed_XX_noisy = add_noise_to_cl(cl_lensed_XX,noise_uK_arcmin=noise_uK_arcmin,fwhm_arcmin=fwhm_arcmin,lmax=lmax,spec='cltt')
+		cl_lensed_XX_noisy = add_noise_to_cl(cl_lensed_XX,noise_uK_arcmin=noise_uK_arcmin,fwhm_arcmin=fwhm_arcmin,lmax=lmax,spec='cltt',TTcorr=TTcorr)
 		cl_lensed_YY_noisy = add_noise_to_cl(cl_lensed_YY,noise_uK_arcmin=noise_uK_arcmin,fwhm_arcmin=fwhm_arcmin,lmax=lmax,spec='clbb')
 		cl_lensed_XY_noisy = np.zeros_like(cl_lensed_XY)
 	elif flavor =='cleb':
@@ -145,12 +147,12 @@ def load_weights(cls_class,flavor, noise_uK_arcmin, fwhm_arcmin, lmax, extra='')
 		cl_lensed_XY_noisy = np.zeros_like(cl_lensed_XY)
 	elif flavor=='clte':
 		cl_lensed_XY_noisy = cl_lensed_XY
-		cl_lensed_XX_noisy = add_noise_to_cl(cl_lensed_XX,noise_uK_arcmin=noise_uK_arcmin,fwhm_arcmin=fwhm_arcmin,lmax=lmax,spec='cltt')
+		cl_lensed_XX_noisy = add_noise_to_cl(cl_lensed_XX,noise_uK_arcmin=noise_uK_arcmin,fwhm_arcmin=fwhm_arcmin,lmax=lmax,spec='cltt',TTcorr=TTcorr)
 		cl_lensed_YY_noisy = add_noise_to_cl(cl_lensed_YY,noise_uK_arcmin=noise_uK_arcmin,fwhm_arcmin=fwhm_arcmin,lmax=lmax,spec='clee')
 	else:
-		cl_lensed_XY_noisy = add_noise_to_cl(cl_lensed_XY,noise_uK_arcmin=noise_uK_arcmin,fwhm_arcmin=fwhm_arcmin,lmax=lmax,spec=flavor)
-		cl_lensed_XX_noisy = add_noise_to_cl(cl_lensed_XX,noise_uK_arcmin=noise_uK_arcmin,fwhm_arcmin=fwhm_arcmin,lmax=lmax,spec=flavor)
-		cl_lensed_YY_noisy = add_noise_to_cl(cl_lensed_YY,noise_uK_arcmin=noise_uK_arcmin,fwhm_arcmin=fwhm_arcmin,lmax=lmax,spec=flavor)
+		cl_lensed_XY_noisy = add_noise_to_cl(cl_lensed_XY,noise_uK_arcmin=noise_uK_arcmin,fwhm_arcmin=fwhm_arcmin,lmax=lmax,spec=flavor,TTcorr=TTcorr)
+		cl_lensed_XX_noisy = add_noise_to_cl(cl_lensed_XX,noise_uK_arcmin=noise_uK_arcmin,fwhm_arcmin=fwhm_arcmin,lmax=lmax,spec=flavor,TTcorr=TTcorr)
+		cl_lensed_YY_noisy = add_noise_to_cl(cl_lensed_YY,noise_uK_arcmin=noise_uK_arcmin,fwhm_arcmin=fwhm_arcmin,lmax=lmax,spec=flavor,TTcorr=TTcorr)
 
 	cl_XX = np.zeros((2,lmax+1),dtype=float)
 	cl_YY = np.zeros((2,lmax+1),dtype=float)
@@ -185,7 +187,7 @@ def compute_R(cls_unlensed):
 ########################################################################
 # Compute biases and minimum variance quantities
 
-def compute_N0_XYWZ(cls_lensed,lmin=2,blocks=['TTTT'],noise_uK_arcmin=0.0,fwhm_arcmin=0.0,MPI=None):
+def compute_N0_XYWZ(cls_lensed,lmin=2,blocks=['TTTT'],noise_uK_arcmin=0.0,TTcorr=False,fwhm_arcmin=0.0,MPI=None):
 	'''
 	Compute the gaussian bias (N0) for a given experimental setup.
 	Input:
@@ -193,6 +195,7 @@ def compute_N0_XYWZ(cls_lensed,lmin=2,blocks=['TTTT'],noise_uK_arcmin=0.0,fwhm_a
 		* lmin: int, minimum multipole.
 		* block: string, 4-pt name (e.g. TTTT, or EBEB).
 		* noise_uK_arcmin: float, white noise level to be used (in uK.arcmin).
+		* TTcorr: : int, cut-off in ell for correlated noise
 		* fwhm_arcmin: float, beam FWHM to be used.
 		* MPI: module, module to pass if you want to parallelize the computation. If None, the computation is done serially.
 	Output
@@ -218,20 +221,20 @@ def compute_N0_XYWZ(cls_lensed,lmin=2,blocks=['TTTT'],noise_uK_arcmin=0.0,fwhm_a
 		if rank == 0: print 'Doing block %s (%s, %s, %s)\n'%(block,flavor1,flavor2, flavor_n0)
 
 		## Load the weights and spin values used in N0 computation
-		cl_XX, cl_YY, cl_XY = load_weights(cls_lensed, flavor1, noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long')
+		cl_XX, cl_YY, cl_XY = load_weights(cls_lensed, flavor1, noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
 		spinl2_x, spinl3_x, spinl2_y, spinl3_y = load_spin_values_wigner(flavor1)
 		if block == 'TTEE':
-			cl_XX, junk1, junk2 = load_weights(cls_lensed, 'cltt', noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long')
-			cl_junk1, cl_YY, junk2 = load_weights(cls_lensed, 'clee', noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long')
-			junk1, junk2, cl_XY = load_weights(cls_lensed, 'clte', noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long')
+			cl_XX, junk1, junk2 = load_weights(cls_lensed, 'cltt', noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
+			cl_junk1, cl_YY, junk2 = load_weights(cls_lensed, 'clee', noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
+			junk1, junk2, cl_XY = load_weights(cls_lensed, 'clte', noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
 			spinl2_x, spinl3_x, spinl2_y, spinl3_y = load_spin_values_wigner('clte')
 		if block in ['TTTE','EETE']:
-			cl_XX, cl_YY, cl_XY = load_weights(cls_lensed, 'clte', noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long')
+			cl_XX, cl_YY, cl_XY = load_weights(cls_lensed, 'clte', noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
 			spinl2_x, spinl3_x, spinl2_y, spinl3_y = load_spin_values_wigner('clte')
 		if block == 'EBTB':
 			## clxx is EE, clyy is BB, clxy is clte**2/(clee*clbb)
-			cl_XX, cl_YY, cl_XY = load_weights(cls_lensed, 'cleb', noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long')
-			TT, EE, TE = load_weights(cls_lensed, 'clte', noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long')
+			cl_XX, cl_YY, cl_XY = load_weights(cls_lensed, 'cleb', noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
+			TT, EE, TE = load_weights(cls_lensed, 'clte', noise_uK_arcmin, fwhm_arcmin, 2*lmax, extra='_long',TTcorr=TTcorr)
 			cl_XY[0] = TE[0]**2 / (TT[0]*EE[0])
 			cl_XY[1] = TE[1]**2 / (TT[1]*EE[1])
 			spinl2_x, spinl3_x, spinl2_y, spinl3_y = load_spin_values_wigner('cleb')
@@ -635,16 +638,6 @@ class camb_clfile(object):
 			return False
 
 		return True
-
-	def plot(self, spec='cltt', p=pl.plot, t=lambda l:1., **kwargs):
-		"""
-		Plot the spectrum
-		Input
-			 * spec: string, name of the spectrum to display (e.g. cltt, clee, clte, etc.)
-			 * p: function, plotting function to use p(x,y,**kwargs)
-			 * t: function, scaling to apply to the plotted C_ell -> t(ell)*C_ell
-		"""
-		p( self.ls, t(self.ls) * getattr(self, spec), **kwargs )
 
 ########################################################################
 # Old and ugly (probably not working)

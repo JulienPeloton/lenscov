@@ -5,7 +5,7 @@ lenscov
 
 #### The package
 This package contains scripts for computing CMB and lensing covariances
-as described in Peloton et al. 2016 (<a href="https://arxiv.org/abs/1611.01446" title=1611.01446">1611.01446</a>)
+as described in Peloton et al. 2016 (https://arxiv.org/abs/1611.01446)
 It has routines for:
 * Spectra
     * computing (analytically) the N0 bias (curve- and flat-sky available)

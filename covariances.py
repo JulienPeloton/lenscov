@@ -7,26 +7,50 @@
 #########################
 import numpy as np
 
-import sys,os,glob
+import sys
+import os
+import glob
 import argparse
 
-import lib_covariances, lib_spectra
-import misc, util
+import lib_covariances
+import lib_spectra
+import misc 
+import util
 
 ## Define
 DEBUG = False
 
 def addargs(parser):
 	''' Parse command line arguments '''
-	parser.add_argument('-input_unlensed_spectra',dest='input_unlensed_spectra',help='Input unlensed spectra (CAMB)',required=True)
-	parser.add_argument('-input_lensed_spectra',dest='input_lensed_spectra',help='Input lensed spectra (CAMB)',required=True)
-	parser.add_argument('-exp',dest='exp',help='Instrumental configuration: Planck, Core++, CMB-S4, Ideal',required=True)
-	parser.add_argument('-runmode',dest='runmode',help='What do you want to compute?',required=True)
-	parser.add_argument('--mpi',dest='mpi',help='Run using mpi (mpi4py required)',action='store_true')
+	parser.add_argument(
+		'-input_unlensed_spectra',
+		dest='input_unlensed_spectra',help='Input unlensed spectra (CAMB)',
+		required=True)
+	parser.add_argument(
+		'-input_lensed_spectra',
+		dest='input_lensed_spectra',
+		help='Input lensed spectra (CAMB)',
+		required=True)
+	parser.add_argument(
+		'-exp',
+		dest='exp',
+		help='Instrumental configuration: Planck, Core++, CMB-S4, Ideal',
+		required=True)
+	parser.add_argument(
+		'-runmode',
+		dest='runmode',
+		help='What do you want to compute?',
+		required=True)
+	parser.add_argument(
+		'--mpi',
+		dest='mpi',
+		help='Run using mpi (mpi4py required)',
+		action='store_true')
 
 def grabargs(args_param=None):
 	''' Parse command line arguments '''
-	parser = argparse.ArgumentParser(description='Main script to compute auto- and cross-covariances. See 1611.01446')
+	parser = argparse.ArgumentParser(
+		description='Main script to compute auto- and cross-covariances. See 1611.01446')
 	addargs(parser)
 	args = parser.parse_args(args_param)
 	return args
@@ -45,7 +69,8 @@ def covariances_main(args):
 		comm = MPI.COMM_WORLD
 		rank = comm.rank
 		barrier = comm.barrier
-		if DEBUG: print "Hello! I'm rank %d from %d running in total..." % (comm.rank, comm.size)
+		if DEBUG: 
+			print "Hello! I'm rank %d from %d running in total..." % (comm.rank, comm.size)
 	else:
 		MPI = None
 		rank = 0
@@ -58,18 +83,18 @@ def covariances_main(args):
 	if rank == 0:
 		if DEBUG: print args
 		print '+-----------------------------+'
-		print '+ Exp:			   ',exp
-		print '+ Noise (uK.arcmin): ',noise_uK_arcmin
-		print '+ TTcorr:          ',TTcorr
-		print '+ FWHM (arcmin):	 ',fwhm_arcmin
-		print '+ lmin:			  ',lmin
-		print '+ lmax:			  ',lmax
-		print '+ MODE:			  ',MODE
+		print '+ Exp:			   ', exp
+		print '+ Noise (uK.arcmin):        ', noise_uK_arcmin
+		print '+ TTcorr:                   ', TTcorr
+		print '+ FWHM (arcmin):	           ', fwhm_arcmin
+		print '+ lmin:			   ', lmin
+		print '+ lmax:			   ', lmax
+		print '+ MODE:			   ', MODE
 		print '+-----------------------------+'
 
 	## Initialization of spectra
-	cls_unlensed = lib_spectra.get_camb_cls(fname=args.input_unlensed_spectra,lmax=lmax)
-	cls_lensed = lib_spectra.get_camb_cls(fname=args.input_lensed_spectra,lmax=lmax)
+	cls_unlensed = lib_spectra.get_camb_cls(fname=args.input_unlensed_spectra, lmax=lmax)
+	cls_lensed = lib_spectra.get_camb_cls(fname=args.input_lensed_spectra, lmax=lmax)
 
 	########################################################################
 	# List of different options
@@ -86,15 +111,28 @@ def covariances_main(args):
 		blocks = ['TTTT','EEEE','BBBB','TETE','TBTB','EBEB','TTEE','TTTE','EETE','EBTB']
 
 		## Initialization of file manager
-		file_manager = util.file_manager(MODE, exp, 'v1', lmax, force_recomputation=False, folder=folder_cache,rank=rank)
+		file_manager = util.file_manager(
+			MODE, 
+			exp, 
+			'v1', 
+			lmax, 
+			force_recomputation = False, 
+			folder=folder_cache, 
+			rank=rank)
 
 		if file_manager.FileExist is True:
 			if rank == 0:
 				print 'Already computed in %s/'%folder_cache
 			sys.exit()
 		else:
-			N0, blocks = lib_spectra.compute_N0_XYWZ(cls_lensed, lmin=lmin, blocks=blocks,
-				noise_uK_arcmin=noise_uK_arcmin, TTcorr=TTcorr, fwhm_arcmin=fwhm_arcmin, MPI=MPI)
+			N0, blocks = lib_spectra.compute_N0_XYWZ(
+				cls_lensed, 
+				lmin=lmin, 
+				blocks=blocks,
+				noise_uK_arcmin=noise_uK_arcmin, 
+				TTcorr=TTcorr, 
+				fwhm_arcmin=fwhm_arcmin, 
+				MPI=MPI)
 			array_to_save = [N0, blocks]
 
 	if MODE == 'N1':
@@ -111,7 +149,14 @@ def covariances_main(args):
 			print 'https://github.com/JulienPeloton/lensingbiases'
 
 		## Initialization of file manager
-		file_manager = util.file_manager(MODE, exp, 'v1', lmax, force_recomputation=False, folder=folder_cache,rank=rank)
+		file_manager = util.file_manager(
+			MODE, 
+			exp, 
+			'v1', 
+			lmax, 
+			force_recomputation=False, 
+			folder=folder_cache, 
+			rank=rank)
 
 		LB.checkproc_py()
 
@@ -119,18 +164,32 @@ def covariances_main(args):
 			TTcorr = 2
 
 		## We need to compute N0 for internal purposes (flat-sky, so not used afterwards)
-		bins, phiphi, n0_mat, indices = LB.compute_n0_py(from_args=None,phifile=args.input_unlensed_spectra,
-							lensedcmbfile=args.input_lensed_spectra,
-							FWHM=fwhm_arcmin,noise_level=noise_uK_arcmin,
-							lmin=lmin,lmaxout=lmax,lmax=lmax,lmax_TT=lmax,lcorr_TT=TTcorr,
-							tmp_output='N1/%s'%exp)
+		bins, phiphi, n0_mat, indices = LB.compute_n0_py(
+			from_args=None,
+			phifile=args.input_unlensed_spectra,
+			lensedcmbfile=args.input_lensed_spectra,
+			FWHM=fwhm_arcmin,
+			noise_level=noise_uK_arcmin,
+			lmin=lmin,
+			lmaxout=lmax,
+			lmax=lmax,
+			lmax_TT=lmax,
+			lcorr_TT=TTcorr,
+			tmp_output='N1/%s'%exp)
 
 		## Compute N1, and derivatives of N1 wrt lensing potential power-spectrum
-		LB.compute_n1_derivatives_py(from_args=None,phifile=args.input_unlensed_spectra,
-							lensedcmbfile=args.input_lensed_spectra,
-							FWHM=fwhm_arcmin,noise_level=noise_uK_arcmin,
-							lmin=lmin,lmaxout=lmax,lmax=lmax,lmax_TT=lmax,lcorr_TT=TTcorr,
-							tmp_output='N1/%s'%exp)
+		LB.compute_n1_derivatives_py(
+			from_args = None, 
+			phifile=args.input_unlensed_spectra,
+			lensedcmbfile=args.input_lensed_spectra,
+			FWHM=fwhm_arcmin,
+			noise_level=noise_uK_arcmin,
+			lmin=lmin,
+			lmaxout=lmax,
+			lmax=lmax,
+			lmax_TT=lmax,
+			lcorr_TT=TTcorr,
+			tmp_output='N1/%s'%exp)
 		sys.exit()
 
 	elif MODE == 'covariances_CMBxCMB':
@@ -138,19 +197,43 @@ def covariances_main(args):
 		Compute different parts of the CMB auto-covariance.
 		'''
 		## The available blocks in the code.
-		blocks = ['TTTT', 'EEEE', 'BBBB', 'EEBB', 'TTEE', 'TTBB', 'TETE', 'TTTE', 'EETE', 'TEBB']
-		file_manager = util.file_manager(MODE, exp, spec='v1', lmax=lmax,
-									force_recomputation=False, folder=folder_cache,rank=rank)
+		blocks = [
+			'TTTT', 
+			'EEEE', 
+			'BBBB', 
+			'EEBB', 
+			'TTEE', 
+			'TTBB', 
+			'TETE', 
+			'TTTE', 
+			'EETE', 
+			'TEBB']
+		file_manager = util.file_manager(
+			MODE, 
+			exp, 
+			spec='v1', 
+			lmax=lmax,
+			force_recomputation=False, 
+			folder=folder_cache,
+			rank=rank)
 
 		if file_manager.FileExist is True:
 			if rank == 0:
-				print 'Already computed in %s/'%folder_cache
+				print 'Already computed in %s/' % folder_cache
 			sys.exit()
 		else:
-			cov_order0_tot, cov_order1_tot, cov_order2_tot, junk = lib_covariances.analytic_covariances_CMBxCMB(cls_unlensed,
-					cls_lensed,lmin=lmin,blocks=blocks,
-					noise_uK_arcmin=noise_uK_arcmin,TTcorr=TTcorr,fwhm_arcmin=fwhm_arcmin, MPI=MPI,
-					use_corrfunc=True,exp=exp,folder_cache=folder_cache)
+			cov_order0_tot, cov_order1_tot, cov_order2_tot, junk = lib_covariances.analytic_covariances_CMBxCMB(
+				cls_unlensed,
+				cls_lensed,
+				lmin=lmin,
+				blocks=blocks,
+				noise_uK_arcmin=noise_uK_arcmin,
+				TTcorr=TTcorr,
+				fwhm_arcmin=fwhm_arcmin, 
+				MPI=MPI,
+				use_corrfunc=True,
+				exp=exp,
+				folder_cache=folder_cache)
 			array_to_save = [cov_order0_tot, cov_order1_tot, cov_order2_tot, blocks]
 
 	elif MODE == 'covariances_phixCMB':
@@ -159,9 +242,15 @@ def covariances_main(args):
 		between the lensing potential power-spectrum and the lensed CMB.
 		'''
 		## Initialization of file manager
-		path_to_N1matrix = 'N1/%s'%(exp)
-		file_manager = util.file_manager(MODE, exp, spec='v1', lmax=lmax,
-									force_recomputation=False, folder=folder_cache,rank=rank)
+		path_to_N1matrix = 'N1/%s' % (exp)
+		file_manager = util.file_manager(
+			MODE, 
+			exp, 
+			spec='v1', 
+			lmax=lmax,
+			force_recomputation=False, 
+			folder=folder_cache,
+			rank=rank)
 
 		if file_manager.FileExist is True:
 			if rank == 0:
@@ -169,9 +258,18 @@ def covariances_main(args):
 			sys.exit()
 		else:
 			cov_MV, cov_MV_signal, cov_MV_noise, cov_MV_trispA, cov_MV_trispB, combinations_CMB = \
-							lib_covariances.analytic_covariances_phixCMB(cls_unlensed,cls_lensed,lmin=lmin,
-							noise_uK_arcmin=noise_uK_arcmin,TTcorr=TTcorr,fwhm_arcmin=fwhm_arcmin,MPI=MPI,use_corrfunc=True,exp=exp,
-							folder_cache=folder_cache,path_to_N1matrix=path_to_N1matrix)
+							lib_covariances.analytic_covariances_phixCMB(
+								cls_unlensed,
+								cls_lensed,
+								lmin=lmin,
+								noise_uK_arcmin=noise_uK_arcmin,
+								TTcorr=TTcorr,
+								fwhm_arcmin=fwhm_arcmin,
+								MPI=MPI,
+								use_corrfunc=True,
+								exp=exp,
+								folder_cache=folder_cache,
+								path_to_N1matrix=path_to_N1matrix)
 			array_to_save = [cov_MV, cov_MV_signal, cov_MV_noise, cov_MV_trispA, cov_MV_trispB, combinations_CMB]
 
 	elif MODE == 'covariances_phixphi':
@@ -180,19 +278,32 @@ def covariances_main(args):
 		for the reconstructed lensing potential power spectrum.
 		'''
 		## Initialization of file manager
-		fn_n1 = 'N1/%s/N1_All_analytical.dat'%(exp)
+		fn_n1 = 'N1/%s/N1_All_analytical.dat' % (exp)
 
-		file_manager = util.file_manager(MODE, exp, spec='v1', lmax=lmax,
-								force_recomputation=False, folder=folder_cache,rank=rank)
+		file_manager = util.file_manager(
+			MODE, 
+			exp, 
+			spec='v1', 
+			lmax=lmax,
+			force_recomputation=False, 
+			folder=folder_cache,
+			rank=rank)
 
 		if file_manager.FileExist is True:
 			if rank == 0:
 				print 'Already computed in %s/'%folder_cache
 			sys.exit()
 		else:
-			cov_MV, cov_RDN0_MV, blocks = lib_covariances.analytic_covariances_phixphi(cls_unlensed,cls_lensed,lmin=lmin,
-							noise_uK_arcmin=noise_uK_arcmin,TTcorr=TTcorr,fwhm_arcmin=fwhm_arcmin,
-							MPI=MPI,exp=exp,folder_cache=folder_cache,fn_n1=fn_n1)
+			cov_MV, cov_RDN0_MV, blocks = lib_covariances.analytic_covariances_phixphi(
+				cls_unlensed,
+				cls_lensed,lmin=lmin,
+				noise_uK_arcmin=noise_uK_arcmin,
+				TTcorr=TTcorr,
+				fwhm_arcmin=fwhm_arcmin,
+				MPI=MPI,
+				exp=exp,
+				folder_cache=folder_cache,
+				fn_n1=fn_n1)
 
 			array_to_save = [cov_MV, cov_RDN0_MV, blocks]
 
@@ -203,49 +314,70 @@ def covariances_main(args):
 		as defined in Eq. 37 in 1611.01446.
 		'''
 		## Initialization of file manager
-		file_manager = util.file_manager(MODE, exp, spec='v1', lmax=lmax,
-								force_recomputation=False, folder=folder_cache,rank=rank)
+		file_manager = util.file_manager(
+			MODE, 
+			exp, 
+			spec='v1', 
+			lmax=lmax,
+			force_recomputation=False, 
+			folder=folder_cache,
+			rank=rank)
 
 		## This is just the upper triangle.
 		## Transposed terms are computed as well.
-		combinations = ['TTTT', 'TTEE', 'TTBB', 'TTTE', 'TTET',
-						'EEEE', 'EEBB', 'EETE', 'EEET',
-						'BBBB', 'BBTE', 'BBET',
-						'TETE', 'TEET',
-						'ETET',
-						'EBEB', 'EBBE',
-						'BEBE',
-						'TBTB', 'TBBT',
-						'BTBT',
-						'EBTB','BETB','BEBT']
+		combinations = [
+			'TTTT', 'TTEE', 'TTBB', 'TTTE', 'TTET',
+			'EEEE', 'EEBB', 'EETE', 'EEET', 'BBBB', 
+			'BBTE', 'BBET', 'TETE', 'TEET', 'ETET',
+			'EBEB', 'EBBE', 'BEBE', 'TBTB', 'TBBT',
+			'BTBT', 'EBTB', 'BETB', 'BEBT']
 		for combination in combinations:
-			trispB = lib_covariances.precompute_trispB(cls_unlensed,cls_lensed,combination=combination,lmin=lmin,
-								noise_uK_arcmin=noise_uK_arcmin,TTcorr=TTcorr,fwhm_arcmin=fwhm_arcmin,
-								MPI=MPI,exp=exp,folder_cache=folder_cache)
+			trispB = lib_covariances.precompute_trispB(
+				cls_unlensed,
+				cls_lensed,
+				combination=combination,
+				lmin=lmin,
+				noise_uK_arcmin=noise_uK_arcmin,
+				TTcorr=TTcorr,
+				fwhm_arcmin=fwhm_arcmin,
+				MPI=MPI,
+				exp=exp,
+				folder_cache=folder_cache)
 
 			array_to_save = [trispB, combination]
 
 			if rank==0:
-				file_manager.save_data_on_disk(array_to_save,name=os.path.join(folder_cache,
-									file_manager.basefn + '_%s.pkl'%combination))
+				file_manager.save_data_on_disk(
+					array_to_save,
+					name=os.path.join(folder_cache,file_manager.basefn + '_%s.pkl'%combination))
 
 			## Compute transposed terms as well
 			if combination[0:2] != combination[2:4]:
-				trispB = lib_covariances.precompute_trispB(cls_unlensed,cls_lensed,
-									combination=combination[2:4]+combination[:2],lmin=lmin,
-									noise_uK_arcmin=noise_uK_arcmin,TTcorr=TTcorr,fwhm_arcmin=fwhm_arcmin,
-									MPI=MPI,exp=exp,folder_cache=folder_cache)
+				trispB = lib_covariances.precompute_trispB(
+					cls_unlensed,
+					cls_lensed,
+					combination=combination[2:4]+combination[:2],
+					lmin=lmin,
+					noise_uK_arcmin=noise_uK_arcmin,
+					TTcorr=TTcorr,
+					fwhm_arcmin=fwhm_arcmin,
+					MPI=MPI,
+					exp=exp,
+					folder_cache=folder_cache)
 
 				array_to_save = [trispB, combination]
 
 				if rank==0:
-					file_manager.save_data_on_disk(array_to_save,name=os.path.join(folder_cache,
-											file_manager.basefn + '_%s.pkl'%(combination[2:4]+combination[:2])))
+					file_manager.save_data_on_disk(
+						array_to_save,
+						name=os.path.join(
+							folder_cache, 
+							file_manager.basefn + '_%s.pkl'%(combination[2:4]+combination[:2])))
 
 			MPI.COMM_WORLD.Barrier()
 		sys.exit()
 
-	if file_manager.FileExist is False and rank==0:
+	if file_manager.FileExist is False and rank == 0:
 		file_manager.save_data_on_disk(array_to_save)
 
 if __name__ == "__main__":

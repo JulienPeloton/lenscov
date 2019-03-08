@@ -8,7 +8,7 @@
 import numpy as np
 import sys, copy, os, glob
 
-from scipy.weave import inline, converters
+from weave import inline, converters
 from scipy import interpolate
 
 from loop_lensing import loop_lensing
